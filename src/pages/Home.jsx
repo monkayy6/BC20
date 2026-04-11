@@ -1,15 +1,13 @@
-function Home() {
+function Home({ mood, setMood }) {
   const days = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su']
   const completed = [true, true, true, true, false, false, false]
-
+ 
   return (
     <div style={{ padding: '32px' }}>
 
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1E4D8C', margin: 0 }}>Good morning, Luke</h1>
-        <p style={{ color: '#888', marginTop: '4px', fontSize: '14px' }}>Saturday, April 11 · Penn State Behrend</p>
-      </div>
-
+        <p style={{ color: '#888', marginTop: '4px', fontSize: '14px' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · Penn State Behrend</p>      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         {[['3', 'Sessions this week'], ['4.2h', 'Avg study / day'], ['4', 'Lion streak days']].map(([val, lbl], i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px 24px' }}>
@@ -68,15 +66,23 @@ function Home() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Wellness Check-In</h2>
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>How are you feeling today?</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([mood, bg, color], i) => (
-                <div key={i} style={{ padding: '10px', borderRadius: '10px', background: i === 3 ? bg : bg, color, fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer', border: i === 3 ? '2px solid #378ADD' : '1px solid #eee' }}>{mood}</div>
-              ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([m, bg, color]) => (
+                <div
+                    key={m}
+                    onClick={() => setMood(m)}
+                    style={{
+                        padding: '10px', borderRadius: '10px', background: bg, color,
+                        fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer',
+                        border: mood === m ? '2px solid #1E4D8C' : '1px solid #eee',
+                        transform: mood === m ? 'scale(1.03)' : 'scale(1)',
+                        transition: 'all 0.15s ease'
+                    }}
+                >
+            {m}
+        </div>
+        ))}
             </div>
-          </div>
 
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Study Streak</h2>
@@ -88,10 +94,13 @@ function Home() {
             <div style={{ fontSize: '12px', color: '#888' }}>4 day streak — keep it up!</div>
           </div>
 
-          <div style={{ background: '#1E4D8C', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 8px', color: '#fff' }}>Take a Gorge break</h2>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.6' }}>You've been studying for a while. A walk on the Wintergreen Gorge trail can help clear your head.</p>
-            <button style={{ marginTop: '12px', padding: '8px 16px', background: '#fff', color: '#1E4D8C', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>View trail info</button>
+          <div style={{ background: '#1E4D8C', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
+            <img src="https://erietrails.org/wp-content/uploads/2017/12/Wintergreen-Gorge-Photos_050-800x532.jpg" alt="Wintergreen Gorge" style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
+            <div style={{ padding: '24px' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 8px', color: '#fff' }}>Take a Gorge Break</h2>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.6' }}>You've been studying for a while. A walk on the Wintergreen Gorge trail can help clear your head.</p>
+                <a href="https://erietrails.org/wintergreen-gorge/" target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '12px', padding: '8px 16px', background: '#fff', color: '#1E4D8C', borderRadius: '8px', fontSize: '12px', fontWeight: '600', textDecoration: 'none' }}>View trail info</a>
+            </div>
           </div>
 
         </div>
