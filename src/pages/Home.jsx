@@ -1,4 +1,103 @@
 function Home() {
-  return <div style={{ padding: '20px' }}>Home</div>
+  const days = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su']
+  const completed = [true, true, true, true, false, false, false]
+
+  return (
+    <div style={{ padding: '32px' }}>
+
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1E4D8C', margin: 0 }}>Good morning, Luke</h1>
+        <p style={{ color: '#888', marginTop: '4px', fontSize: '14px' }}>Saturday, April 11 · Penn State Behrend</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+        {[['3', 'Sessions this week'], ['4.2h', 'Avg study / day'], ['4', 'Lion streak days']].map(([val, lbl], i) => (
+          <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px 24px' }}>
+            <div style={{ fontSize: '28px', fontWeight: '600', color: '#1E4D8C' }}>{val}</div>
+            <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>{lbl}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: '#1E4D8C' }}>Upcoming Sessions</h2>
+              <button style={{ padding: '6px 14px', background: '#1E4D8C', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>+ Schedule</button>
+            </div>
+            {[
+              { name: 'Exam 2 review', time: 'Today · 7:00 PM', location: 'Reed 117', badge: 'Joined', color: '#EAF3DE', text: '#27500A' },
+              { name: 'HW 5 collab', time: 'Thu · 3:30 PM', location: 'Virtual', badge: 'Open', color: '#E6F1FB', text: '#0C447C' },
+              { name: 'Office hours carpool', time: 'Fri · 1:00 PM', location: 'Hamot lot', badge: '2 spots left', color: '#FAEEDA', text: '#633806' },
+            ].map((s, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📚</div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '500' }}>{s.name}</div>
+                    <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{s.time} · {s.location}</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '20px', background: s.color, color: s.text, fontWeight: '500' }}>{s.badge}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#1E4D8C' }}>Activity</h2>
+            {[
+              { text: 'Maya posted Ch. 8 notes for STAT 301', time: '20 min ago', active: true },
+              { text: 'Tom joined Exam 2 review session', time: '1 hr ago', active: false },
+              { text: 'New session created: Midterm cram — Apr 16', time: '2 hrs ago', active: false },
+              { text: 'Jess shared a practice exam in CMPSC 221', time: 'Yesterday', active: false },
+            ].map((n, i) => (
+              <div key={i} style={{ display: 'flex', gap: '12px', padding: '10px 0', borderBottom: i < 3 ? '1px solid #f0f0f0' : 'none' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: n.active ? '#1E4D8C' : '#ddd', marginTop: '5px', flexShrink: 0 }}></div>
+                <div>
+                  <div style={{ fontSize: '13px' }}>{n.text}</div>
+                  <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{n.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Wellness Check-In</h2>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>How are you feeling today?</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([mood, bg, color], i) => (
+                <div key={i} style={{ padding: '10px', borderRadius: '10px', background: i === 3 ? bg : bg, color, fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer', border: i === 3 ? '2px solid #378ADD' : '1px solid #eee' }}>{mood}</div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Study Streak</h2>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+              {days.map((d, i) => (
+                <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', background: completed[i] ? '#1E4D8C' : '#f5f5f5', color: completed[i] ? '#fff' : '#aaa', border: completed[i] ? 'none' : '1px solid #eee' }}>{d}</div>
+              ))}
+            </div>
+            <div style={{ fontSize: '12px', color: '#888' }}>4 day streak — keep it up!</div>
+          </div>
+
+          <div style={{ background: '#1E4D8C', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 8px', color: '#fff' }}>Take a Gorge break</h2>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.6' }}>You've been studying for a while. A walk on the Wintergreen Gorge trail can help clear your head.</p>
+            <button style={{ marginTop: '12px', padding: '8px 16px', background: '#fff', color: '#1E4D8C', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>View trail info</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
 }
+
 export default Home

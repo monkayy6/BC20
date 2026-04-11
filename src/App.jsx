@@ -5,10 +5,38 @@ import Messages from './pages/Messages'
 import Classes from './pages/Classes'
 
 export default function App() {
+  const navStyle = ({ isActive }) => ({
+    display: 'block', padding: '10px 16px', borderRadius: '8px', textDecoration: 'none',
+    fontSize: '14px', fontWeight: '500', marginBottom: '4px',
+    background: isActive ? '#E6F1FB' : 'transparent',
+    color: isActive ? '#1E4D8C' : '#555',
+  })
+
   return (
     <BrowserRouter>
-      <div style={{ maxWidth: '430px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+
+        <div style={{ width: '220px', borderRight: '1px solid #eee', padding: '24px 16px', flexShrink: 0 }}>
+          <div style={{ marginBottom: '32px', paddingLeft: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#1E4D8C' }}>Behrend Connect</div>
+            <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>Penn State Behrend</div>
+          </div>
+          <NavLink to="/" style={navStyle}>🏠 Home</NavLink>
+          <NavLink to="/calendar" style={navStyle}>📅 Calendar</NavLink>
+          <NavLink to="/messages" style={navStyle}>💬 Messages</NavLink>
+          <NavLink to="/classes" style={navStyle}>🎓 Classes</NavLink>
+          <div style={{ marginTop: 'auto', paddingTop: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 8px', borderTop: '1px solid #eee' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '500', color: '#0C447C' }}>LH</div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '500' }}>Luke H.</div>
+                <div style={{ fontSize: '11px', color: '#888' }}>STAT 301, CS 221</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, background: '#f9f9f9', overflowY: 'auto' }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/calendar" element={<Calendar />} />
@@ -16,12 +44,7 @@ export default function App() {
             <Route path="/classes" element={<Classes />} />
           </Routes>
         </div>
-        <nav style={{ display: 'flex', borderTop: '1px solid #eee', background: '#fff' }}>
-          <NavLink to="/" style={({ isActive }) => ({ flex: 1, textAlign: 'center', padding: '12px', fontSize: '12px', color: isActive ? '#1E4D8C' : '#888', textDecoration: 'none' })}>Home</NavLink>
-          <NavLink to="/calendar" style={({ isActive }) => ({ flex: 1, textAlign: 'center', padding: '12px', fontSize: '12px', color: isActive ? '#1E4D8C' : '#888', textDecoration: 'none' })}>Calendar</NavLink>
-          <NavLink to="/messages" style={({ isActive }) => ({ flex: 1, textAlign: 'center', padding: '12px', fontSize: '12px', color: isActive ? '#1E4D8C' : '#888', textDecoration: 'none' })}>Messages</NavLink>
-          <NavLink to="/classes" style={({ isActive }) => ({ flex: 1, textAlign: 'center', padding: '12px', fontSize: '12px', color: isActive ? '#1E4D8C' : '#888', textDecoration: 'none' })}>Classes</NavLink>
-        </nav>
+
       </div>
     </BrowserRouter>
   )
