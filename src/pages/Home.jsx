@@ -1,6 +1,24 @@
+import { useState } from 'react'
 function Home({ mood, setMood }) {
   const days = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su']
-  const completed = [true, true, true, true, false, false, false]
+  const [completed, setCompleted] = useState([false, false, false, false, false, false, false])
+
+  const toggleDay = (i) => {
+    setCompleted(prev => prev.map((val, idx) => idx === i ? !val : val))
+  }
+
+const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+
+  const calculateStreak = () => {
+    let streak = 0
+    for (let i = todayIndex; i >= 0; i--) {
+      if (completed[i]) streak++
+      else break
+    }
+    return streak
+  }
+
+  const streak = calculateStreak()
  
   return (
     <div style={{ padding: '32px' }}>
@@ -9,7 +27,7 @@ function Home({ mood, setMood }) {
         <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1E4D8C', margin: 0 }}>Good morning, Luke</h1>
         <p style={{ color: '#888', marginTop: '4px', fontSize: '14px' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · Penn State Behrend</p>      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-        {[['3', 'Sessions this week'], ['4.2h', 'Avg study / day'], ['4', 'Lion streak days']].map(([val, lbl], i) => (
+        {[['3', 'Sessions this week'], ['4.2h', 'Avg study / day'], [`${streak}`, 'Study Streak Days']].map(([val, lbl], i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px 24px' }}>
             <div style={{ fontSize: '28px', fontWeight: '600', color: '#1E4D8C' }}>{val}</div>
             <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>{lbl}</div>
@@ -66,32 +84,38 @@ function Home({ mood, setMood }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([m, bg, color]) => (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Wellness Check-In</h2>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>How are you feeling today?</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([m, bg, color]) => (
                 <div
-                    key={m}
-                    onClick={() => setMood(m)}
-                    style={{
-                        padding: '10px', borderRadius: '10px', background: bg, color,
-                        fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer',
-                        border: mood === m ? '2px solid #1E4D8C' : '1px solid #eee',
-                        transform: mood === m ? 'scale(1.03)' : 'scale(1)',
-                        transition: 'all 0.15s ease'
-                    }}
+                  key={m}
+                  onClick={() => setMood(m)}
+                  style={{
+                    padding: '10px', borderRadius: '10px', background: bg, color,
+                    fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer',
+                    border: mood === m ? '2px solid #1E4D8C' : '1px solid #eee',
+                    transform: mood === m ? 'scale(1.03)' : 'scale(1)',
+                    transition: 'all 0.15s ease'
+                  }}
                 >
-            {m}
-        </div>
-        ))}
+                  {m}
+                </div>
+              ))}
             </div>
+          </div>
 
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Study Streak</h2>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
               {days.map((d, i) => (
-                <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', background: completed[i] ? '#1E4D8C' : '#f5f5f5', color: completed[i] ? '#fff' : '#aaa', border: completed[i] ? 'none' : '1px solid #eee' }}>{d}</div>
+                <div key={i} onClick={() => toggleDay(i)} style={{ flex: 1, aspectRatio: '1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', background: completed[i] ? '#1E4D8C' : '#f5f5f5', color: completed[i] ? '#fff' : '#aaa', border: completed[i] ? 'none' : '1px solid #eee', cursor: 'pointer', transition: 'all 0.15s ease' }}>{d}</div>
               ))}
             </div>
-            <div style={{ fontSize: '12px', color: '#888' }}>4 day streak — keep it up!</div>
+            <div style={{ fontSize: '12px', color: '#888' }}>
+              {streak === 0 ? 'Click the days you studied!' : `${streak} day streak — keep it up!`}
+            </div>
           </div>
 
           <div style={{ background: '#1E4D8C', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
