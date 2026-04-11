@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC30dl88c1E7co5MACDCqsLtE2Eh7uS5zc",
-  authDomain: "behrend-connect.firebaseapp.com",
-  projectId: "behrend-connect",
-  storageBucket: "behrend-connect.firebasestorage.app",
-  messagingSenderId: "248607509377",
-  appId: "1:248607509377:web:093d7c397e7976d8623680"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
