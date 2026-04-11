@@ -27,10 +27,17 @@ export default function Login() {
 
    if (!userSnap.exists()) {
   await setDoc(userRef, {
-    email: user.email,
-    photo: user.photoURL,
-    createdAt: new Date().toISOString()
-  })
+  email: user.email,
+  displayName: user.displayName,
+  photo: user.photoURL,
+  createdAt: userSnap.exists() ? userSnap.data().createdAt : new Date().toISOString()
+}, { merge: true })
+
+if (!userSnap.exists()) {
+  navigate('/profile')
+} else {
+  navigate('/')
+}
   navigate('/profile')
 } else {
   navigate('/')
