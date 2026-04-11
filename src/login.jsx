@@ -18,7 +18,7 @@ export default function Login() {
   return (
     <div>
       <h1>Behrend Connect</h1>
-      <button onClick={handleLogin}>Sign in with Google</button>
+      <button onClick={handleLogin}>Sign in with PSU Email</button>
     </div>
   );
 }
