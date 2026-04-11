@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { db, auth } from '../firebase'
-import { collection, query, where, onSnapshot, getDocs, addDoc, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, addDoc, doc, getDoc, getDocs, deleteDoc } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 import { useNavigate } from 'react-router-dom'
-
+ 
 function Home({ mood, setMood }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -15,13 +15,13 @@ function Home({ mood, setMood }) {
   const sessionStart = useRef(null)
   const days = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su']
   const navigate = useNavigate()
-
+ 
   const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-
+ 
   const toggleDay = (i) => {
     setCompleted(prev => prev.map((val, idx) => idx === i ? !val : val))
   }
-
+ 
   const calculateStreak = () => {
     let streak = 0
     for (let i = todayIndex; i >= 0; i--) {
@@ -30,11 +30,11 @@ function Home({ mood, setMood }) {
     }
     return streak
   }
-
+ 
   const streak = calculateStreak()
-
+ 
   const getTodayKey = () => new Date().toISOString().split('T')[0]
-
+ 
   const formatStudyTime = (minutes) => {
     if (minutes < 1) return '0m'
     const h = Math.floor(minutes / 60)
@@ -43,7 +43,7 @@ function Home({ mood, setMood }) {
     if (m === 0) return `${h}h`
     return `${h}h ${m}m`
   }
-
+ 
   // Get user + profile
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -55,16 +55,16 @@ function Home({ mood, setMood }) {
     })
     return unsub
   }, [])
-
+ 
   // Track active tab time
   useEffect(() => {
     if (!user) return
-
+ 
     const saved = localStorage.getItem(`studyMinutes_${user.uid}_${getTodayKey()}`)
     if (saved) setStudyMinutes(parseInt(saved))
-
+ 
     sessionStart.current = Date.now()
-
+ 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         sessionStart.current = Date.now()
@@ -80,8 +80,7 @@ function Home({ mood, setMood }) {
         }
       }
     }
-
-    // Tick every minute to update the display while tab is active
+ 
     const interval = setInterval(() => {
       if (sessionStart.current) {
         const elapsed = Math.floor((Date.now() - sessionStart.current) / 60000)
@@ -91,9 +90,9 @@ function Home({ mood, setMood }) {
         })
       }
     }, 60000)
-
+ 
     document.addEventListener('visibilitychange', handleVisibility)
-
+ 
     return () => {
       clearInterval(interval)
       if (sessionStart.current) {
@@ -107,20 +106,26 @@ function Home({ mood, setMood }) {
       document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [user])
-
-  // Get my upcoming sessions
+ 
+  // Get my upcoming sessions (exclude ones joined from others — those show in discover)
   useEffect(() => {
     if (!user) return
     const today = new Date().toISOString().split('T')[0]
-    const q = query(collection(db, 'sessions'), where('uid', '==', user.uid), where('date', '>=', today))
+    const q = query(
+      collection(db, 'sessions'),
+      where('uid', '==', user.uid),
+      where('date', '>=', today)
+    )
     const unsub = onSnapshot(q, (snap) => {
-      const sorted = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      const sorted = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(s => !s.joinedFrom) // exclude copied joined sessions
         .sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time))
       setMySessions(sorted.slice(0, 3))
     })
     return unsub
   }, [user])
-
+ 
   // Get discover sessions from others in same classes
   useEffect(() => {
     if (!user || !profile?.myClasses?.length) return
@@ -133,13 +138,13 @@ function Home({ mood, setMood }) {
     const unsub = onSnapshot(q, (snap) => {
       const others = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(s => s.uid !== user.uid)
+        .filter(s => s.uid !== user.uid && !s.joinedFrom)
         .sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time))
       setDiscoverSessions(others)
     })
     return unsub
   }, [user, profile])
-
+ 
   // Get joined session ids
   useEffect(() => {
     if (!user) return
@@ -149,10 +154,24 @@ function Home({ mood, setMood }) {
     })
     return unsub
   }, [user])
-
+ 
   const joinSession = async (session) => {
     if (!user) return
-    if (joinedIds.includes(session.id)) return
+ 
+    if (joinedIds.includes(session.id)) {
+      // Leave — remove from joined collection and delete the copied session
+      const joinedQuery = query(collection(db, 'joined'), where('uid', '==', user.uid), where('sessionId', '==', session.id))
+      const joinedSnap = await getDocs(joinedQuery)
+      joinedSnap.forEach(async (d) => await deleteDoc(doc(db, 'joined', d.id)))
+ 
+      const sessionQuery = query(collection(db, 'sessions'), where('uid', '==', user.uid), where('joinedFrom', '==', session.id))
+      const sessionSnap = await getDocs(sessionQuery)
+      sessionSnap.forEach(async (d) => await deleteDoc(doc(db, 'sessions', d.id)))
+ 
+      return
+    }
+ 
+    // Join
     await addDoc(collection(db, 'joined'), { uid: user.uid, sessionId: session.id })
     await addDoc(collection(db, 'sessions'), {
       uid: user.uid,
@@ -164,7 +183,7 @@ function Home({ mood, setMood }) {
       joinedFrom: session.id
     })
   }
-
+ 
   // Count sessions this week
   const startOfWeek = new Date()
   startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
@@ -174,7 +193,7 @@ function Home({ mood, setMood }) {
     const d = new Date(s.date)
     return d >= startOfWeek && d <= endOfWeek
   }).length
-
+ 
   const formatSessionTime = (s) => {
     const d = new Date(s.date + 'T00:00:00')
     const today = new Date()
@@ -189,23 +208,23 @@ function Home({ mood, setMood }) {
     const display = `${hour % 12 || 12}:${m} ${ampm}`
     return `${dayLabel} · ${display}`
   }
-
+ 
   const greeting = () => {
     const h = new Date().getHours()
     if (h < 12) return 'Good morning'
     if (h < 17) return 'Good afternoon'
     return 'Good evening'
   }
-
+ 
   const firstName = profile?.name?.split(' ')[0] || 'there'
-
+ 
   return (
     <div style={{ padding: '32px' }}>
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1E4D8C', margin: 0 }}>{greeting()}, {firstName}</h1>
         <p style={{ color: '#888', marginTop: '4px', fontSize: '14px' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · Penn State Behrend</p>
       </div>
-
+ 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         {[[`${sessionsThisWeek}`, 'Sessions this week'], [formatStudyTime(studyMinutes), 'Study time today'], [`${streak}`, 'Study Streak Days']].map(([val, lbl], i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px 24px' }}>
@@ -214,10 +233,10 @@ function Home({ mood, setMood }) {
           </div>
         ))}
       </div>
-
+ 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
+ 
           {/* Upcoming Sessions */}
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -238,7 +257,7 @@ function Home({ mood, setMood }) {
               </div>
             ))}
           </div>
-
+ 
           {/* Discover Sessions */}
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#1E4D8C' }}>Discover Sessions</h2>
@@ -254,16 +273,27 @@ function Home({ mood, setMood }) {
                       <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{s.class} · {formatSessionTime(s)}{s.location ? ` · ${s.location}` : ''}</div>
                     </div>
                   </div>
-                  <button onClick={() => joinSession(s)} style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '20px', background: joined ? '#EAF3DE' : '#E6F1FB', color: joined ? '#27500A' : '#0C447C', fontWeight: '500', border: 'none', cursor: joined ? 'default' : 'pointer' }}>
-                    {joined ? 'Joined' : 'Join'}
+                  <button
+                    onClick={() => joinSession(s)}
+                    style={{
+                      fontSize: '11px',
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      background: joined ? '#FCEBEB' : '#E6F1FB',
+                      color: joined ? '#A32D2D' : '#0C447C',
+                      fontWeight: '500',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}>
+                    {joined ? 'Leave' : 'Join'}
                   </button>
                 </div>
               )
             })}
           </div>
-
+ 
         </div>
-
+ 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Wellness Check-In</h2>
@@ -277,7 +307,7 @@ function Home({ mood, setMood }) {
               ))}
             </div>
           </div>
-
+ 
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#1E4D8C' }}>Study Streak</h2>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
@@ -289,7 +319,7 @@ function Home({ mood, setMood }) {
               {streak === 0 ? 'Click the days you studied!' : `${streak} day streak — keep it up!`}
             </div>
           </div>
-
+ 
           <div style={{ background: '#1E4D8C', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
             <img src="https://erietrails.org/wp-content/uploads/2017/12/Wintergreen-Gorge-Photos_050-800x532.jpg" alt="Wintergreen Gorge" style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
             <div style={{ padding: '24px' }}>
@@ -303,5 +333,5 @@ function Home({ mood, setMood }) {
     </div>
   )
 }
-
+ 
 export default Home
