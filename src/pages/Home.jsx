@@ -91,7 +91,7 @@ const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
               {[['Stressed', '#FCEBEB', '#A32D2D'], ['Okay', '#f5f5f5', '#555'], ['Good', '#EAF3DE', '#27500A'], ['Focused', '#E6F1FB', '#0C447C']].map(([m, bg, color]) => (
                 <div
                   key={m}
-                  onClick={() => setMood(m)}
+                  onClick={() => setMood(mood === m ? null : m)}
                   style={{
                     padding: '10px', borderRadius: '10px', background: bg, color,
                     fontSize: '13px', fontWeight: '500', textAlign: 'center', cursor: 'pointer',

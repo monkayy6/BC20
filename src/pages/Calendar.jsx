@@ -1,25 +1,41 @@
 import { useState, useEffect } from 'react'
-import { db } from '../firebase'
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore'
+import { db, auth } from '../firebase'
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, getDoc } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 
 const DOT_COLORS = ['#1E4D8C', '#e67e22', '#27ae60', '#8e44ad']
 
 function Calendar() {
   const [sessions, setSessions] = useState([])
+  const [user, setUser] = useState(null)
+  const [myClasses, setMyClasses] = useState([])
   const [view, setView] = useState('main')
   const [form, setForm] = useState({ title: '', class: '', date: '', time: '', location: '' })
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
 
   useEffect(() => {
-    const q = query(collection(db, 'sessions'), where('uid', '==', 'test-user'))
-    const unsub = onSnapshot(q, (snap) => {
-      setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u)
+      if (u) {
+        const snap = await getDoc(doc(db, 'users', u.uid))
+        if (snap.exists()) setMyClasses(snap.data().myClasses || [])
+      }
     })
     return unsub
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+    const q = query(collection(db, 'sessions'), where('uid', '==', user.uid))
+    const unsub = onSnapshot(q, (snap) => {
+      setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    })
+    return unsub
+  }, [user])
+
   const addSession = async () => {
+    if (!user) return
     if (!form.title || !form.date || !form.time) return alert('Please fill in title, date, and time')
     const selectedDateObj = new Date(form.date + 'T' + form.time)
     const today = new Date()
@@ -28,7 +44,7 @@ function Calendar() {
     if (isNaN(selectedDateObj.getTime())) return alert('Please enter a valid date and time')
     if (selectedDateOnly < today) return alert('Please select a date today or in the future')
     if (selectedDateOnly.getTime() === today.getTime() && selectedDateObj < new Date()) return alert('Please select a future time for today')
-    await addDoc(collection(db, 'sessions'), { uid: 'test-user', ...form })
+    await addDoc(collection(db, 'sessions'), { uid: user.uid, ...form })
     setForm({ title: '', class: '', date: '', time: '', location: '' })
     setView('main')
   }
@@ -100,17 +116,40 @@ function Calendar() {
     <div style={{ padding: '24px', maxWidth: '500px' }}>
       <button onClick={() => setView('main')} style={{ marginBottom: '16px', cursor: 'pointer' }}>← Back</button>
       <h2 style={{ color: '#1E4D8C' }}>New Study Session</h2>
-      {['title', 'class', 'date', 'time', 'location'].map(field => (
-        <div key={field} style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', textTransform: 'capitalize' }}>{field}</label>
-          <input
-            type={field === 'date' ? 'date' : field === 'time' ? 'time' : 'text'}
-            value={form[field]}
-            onChange={e => setForm({ ...form, [field]: e.target.value })}
-            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }}
-          />
-        </div>
-      ))}
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Title</label>
+        <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }} />
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Class</label>
+        <select value={form.class} onChange={e => setForm({ ...form, class: e.target.value })}
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }}>
+          <option value=''>-- Select a class --</option>
+          {myClasses.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Date</label>
+        <input type='date' value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }} />
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Time</label>
+        <input type='time' value={form.time} onChange={e => setForm({ ...form, time: e.target.value })}
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }} />
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Location</label>
+        <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })}
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }} />
+      </div>
+
       <button onClick={addSession} style={{ padding: '10px 24px', background: '#1E4D8C', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '8px' }}>
         Save Session
       </button>
@@ -121,9 +160,9 @@ function Calendar() {
     <div style={{ padding: '24px' }}>
       <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px', color : '#1E4D8C' }}>‹</button>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px', color: '#1E4D8C' }}>‹</button>
           <div style={{ fontWeight: '700', color: '#1E4D8C' }}>{monthName} {year}</div>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px' , color : '#1E4D8C'}}>›</button>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px', color: '#1E4D8C' }}>›</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (

@@ -53,49 +53,49 @@ export default function App() {
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#1E4D8C' }}>Loading...</div>
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-        <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/login" />} />
-        <Route path="*" element={
-          !user ? <Navigate to="/login" /> : (
-            <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-              <div style={{ width: '220px', borderRight: '1px solid #eee', padding: '24px 16px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ marginBottom: '16px', paddingLeft: '8px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#1E4D8C' }}>Behrend Connect</div>
-                  <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>Penn State Behrend</div>
-                </div>
-                <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '0 0 16px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', marginBottom: '16px' }}>
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1E4D8C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '500', color: '#fff' }}>{initials}</div>
-                    {mood && (
-                      <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', fontSize: '12px', lineHeight: 1 }}>{moodEmoji[mood]}</div>
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: '500' }}>{profile?.name || 'User'}</div>
-                    <div style={{ fontSize: '11px', color: '#888' }}>{mood ? mood : (profile?.email || '')}</div>
-                  </div>
-                </div>
-                <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '0 0 16px' }} />
-                <NavLink to="/" style={navStyle}>🏠 Home</NavLink>
-                <NavLink to="/calendar" style={navStyle}>📅 Calendar</NavLink>
-                <NavLink to="/messages" style={navStyle}>💬 Messages</NavLink>
-                <NavLink to="/classes" style={navStyle}>🎓 Classes</NavLink>
-              </div>
-              <div style={{ flex: 1, background: '#f9f9f9', overflowY: 'auto' }}>
-                <Routes>
-                  <Route path="/" element={<Home setMood={setMood} mood={mood} />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/classes" element={<Classes />} />
-                </Routes>
-              </div>
+ <BrowserRouter>
+  <Routes>
+    <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+    <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/login" />} />
+    <Route path="*" element={
+      !user ? <Navigate to="/login" /> : (
+        <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+          <div style={{ width: '220px', borderRight: '1px solid #eee', padding: '24px 16px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ marginBottom: '16px', paddingLeft: '8px' }}>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: '#1E4D8C' }}>Behrend Connect</div>
+              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>Penn State Behrend</div>
             </div>
-          )
-        } />
-      </Routes>
-    </BrowserRouter>
+            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '0 0 16px' }} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
+  <div style={{ position: 'relative', flexShrink: 0 }}>
+    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1E4D8C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '500', color: '#fff' }}>{initials}</div>
+    {mood && (
+      <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', fontSize: '12px', lineHeight: 1 }}>{moodEmoji[mood]}</div>
+    )}
+  </div>
+  <div style={{ minWidth: 0 }}>
+    <div style={{ fontSize: '13px', fontWeight: '500' }}>{profile?.name || 'User'}</div>
+    <div style={{ fontSize: '11px', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mood ? mood : (profile?.email || '')}</div>
+  </div>
+</div>
+            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '0 0 16px' }} />
+            <NavLink to="/" style={navStyle}>🏠 Home</NavLink>
+            <NavLink to="/calendar" style={navStyle}>📅 Calendar</NavLink>
+            <NavLink to="/messages" style={navStyle}>💬 Messages</NavLink>
+            <NavLink to="/classes" style={navStyle}>🎓 Classes</NavLink>
+          </div>
+          <div style={{ flex: 1, background: '#f9f9f9', overflowY: 'auto' }}>
+            <Routes>
+              <Route path="/" element={<Home setMood={setMood} mood={mood} />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/classes" element={<Classes />} />
+            </Routes>
+          </div>
+        </div>
+      )
+    } />
+  </Routes>
+</BrowserRouter>
   )
 }

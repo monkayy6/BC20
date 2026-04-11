@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { db } from '../firebase'
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore'
+import { db, auth } from '../firebase'
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, getDocs } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 
 function Classes() {
   const [classes, setClasses] = useState([])
+  const [user, setUser] = useState(null)
   const [view, setView] = useState('main')
 
   const allClasses = [
@@ -14,26 +16,47 @@ function Classes() {
   ]
 
   useEffect(() => {
-    const q = query(collection(db, 'classes'), where('uid', '==', 'test-user'))
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u))
+    return unsub
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    const q = query(collection(db, 'classes'), where('uid', '==', user.uid))
     const unsub = onSnapshot(q, (snap) => {
       setClasses(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     })
     return unsub
-  }, [])
+  }, [user])
 
   const addClass = async (className) => {
+    if (!user) return
     if (classes.find(c => c.name === className)) return
-    await addDoc(collection(db, 'classes'), { uid: 'test-user', name: className })
+    await addDoc(collection(db, 'classes'), { uid: user.uid, name: className })
+    await updateDoc(doc(db, 'users', user.uid), {
+      myClasses: arrayUnion(className)
+    })
   }
 
-  const removeClass = async (id) => {
-    await deleteDoc(doc(db, 'classes', id))
-  }
+  const removeClass = async (id, className) => {
+  if (!user) return
+  
+  // delete the class
+  await deleteDoc(doc(db, 'classes', id))
+  await updateDoc(doc(db, 'users', user.uid), {
+    myClasses: arrayRemove(className)
+  })
+
+  // delete any sessions with that class
+  const q = query(collection(db, 'sessions'), where('uid', '==', user.uid), where('class', '==', className))
+  const snap = await getDocs(q)
+  snap.forEach(async (d) => await deleteDoc(doc(db, 'sessions', d.id)))
+}
 
   if (view === 'add') return (
     <div style={{ padding: '24px' }}>
       <button onClick={() => setView('main')} style={{ marginBottom: '16px', cursor: 'pointer' }}>← Back</button>
-      <h2>Add a Class</h2>
+      <h2 style={{ color: '#1E4D8C' }}>Add a Class</h2>
       {allClasses.map(c => (
         <div key={c} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #eee' }}>
           <span>{c}</span>
@@ -48,12 +71,12 @@ function Classes() {
   if (view === 'remove') return (
     <div style={{ padding: '24px' }}>
       <button onClick={() => setView('main')} style={{ marginBottom: '16px', cursor: 'pointer' }}>← Back</button>
-      <h2>Remove a Class</h2>
+      <h2 style={{ color: '#1E4D8C' }}>Remove a Class</h2>
       {classes.length === 0 && <p>No classes added yet.</p>}
       {classes.map(c => (
         <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #eee' }}>
           <span>{c.name}</span>
-          <button onClick={() => removeClass(c.id)} style={{ cursor: 'pointer', background: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', padding: '4px 12px' }}>Remove</button>
+          <button onClick={() => removeClass(c.id, c.name)} style={{ cursor: 'pointer', background: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', padding: '4px 12px' }}>Remove</button>
         </div>
       ))}
     </div>
