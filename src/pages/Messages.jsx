@@ -56,11 +56,11 @@ export default function Messages() {
     const q = query(collection(db, 'classes'), where('uid', '==', user.uid))
     const unsub = onSnapshot(q, (snapshot) => {
       const classes = snapshot.docs.map(doc => ({
-        id: doc.id,
+        id: doc.data().name.replace(/\s+/g, '_'),  // ✅ e.g. "CS_330" — same for everyone
         name: doc.data().name,
         type: 'group',
         initials: doc.data().name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-      }))
+    }))
       setGroupConversations(classes)
       if (classes.length > 0 && !activeConvo) {
         setActiveConvo(classes[0])
