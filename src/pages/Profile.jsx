@@ -35,7 +35,7 @@ export default function ProfileSetup() {
           <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: '#555' }}>First Name</label>
           <input
             value={firstName}
-            onChange={e => setFirstName(e.target.value)}
+            onChange={e => setFirstName(e.target.value.replace(/[^a-zA-Z]/g, ''))}
             placeholder="John"
             style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
           />
@@ -44,7 +44,7 @@ export default function ProfileSetup() {
           <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: '#555' }}>Last Name</label>
           <input
             value={lastName}
-            onChange={e => setLastName(e.target.value)}
+            onChange={e => setLastName(e.target.value.replace(/[^a-zA-Z]/g, ''))}
             placeholder="Smith"
             style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
           />
