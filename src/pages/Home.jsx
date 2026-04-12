@@ -119,7 +119,6 @@ function Home({ mood, setMood }) {
     const unsub = onSnapshot(q, (snap) => {
       const sorted = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(s => !s.joinedFrom) // exclude copied joined sessions
         .sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time))
       setMySessions(sorted.slice(0, 3))
     })
@@ -253,7 +252,14 @@ function Home({ mood, setMood }) {
                     <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{formatSessionTime(s)}{s.location ? ` · ${s.location}` : ''}</div>
                   </div>
                 </div>
-                <span style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '20px', background: '#EAF3DE', color: '#27500A', fontWeight: '500' }}>Yours</span>
+              <span style={{
+  fontSize: '11px', padding: '4px 10px', borderRadius: '20px',
+  background: s.joinedFrom ? '#E6F1FB' : '#EAF3DE',
+  color: s.joinedFrom ? '#0C447C' : '#27500A',
+  fontWeight: '500'
+}}> 
+  {s.joinedFrom ? 'Joined' : 'Yours'} 
+</span>
               </div>
             ))}
           </div>
