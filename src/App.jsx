@@ -24,20 +24,21 @@ export default function App() {
   }
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u)
-      if (u) {
-  const unsubProfile = onSnapshot(doc(db, 'users', u.uid), (snap) => {
-    if (snap.exists()) setProfile(snap.data())
+  const unsub = onAuthStateChanged(auth, async (u) => {
+    setUser(u)
+    if (u) {
+      const unsubProfile = onSnapshot(doc(db, 'users', u.uid), (snap) => {
+        if (snap.exists()) setProfile(snap.data())
+        setLoading(false) // ← move it here, fires after first profile read
+      })
+      return unsubProfile
+    } else {
+      setProfile(null)
+      setLoading(false) // ← and here for logged out state
+    }
   })
-  return unsubProfile
-} else {
-        setProfile(null)
-      }
-      setLoading(false)
-    })
-    return unsub
-  }, [])
+  return unsub
+}, [])
 
   const navStyle = ({ isActive }) => ({
     display: 'block', padding: '10px 16px', borderRadius: '8px', textDecoration: 'none',
