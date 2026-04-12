@@ -80,6 +80,7 @@ export default function Messages() {
         u.email?.toLowerCase().includes(queryText.toLowerCase()) ||
         u.displayName?.toLowerCase().includes(queryText.toLowerCase())
       ))
+    console.log('search results:', results)
     setSearchResults(results)
   }
 
@@ -87,10 +88,12 @@ export default function Messages() {
     const currentEmail = auth.currentUser?.email
     const convoId = [currentEmail, user.email].sort().join('__').replace(/[@.]/g, '_')
     const newConvo = {
-      id: convoId,
-      name: user.displayName || user.email,
-      type: 'direct',
-      initials: (user.displayName || 'DM').slice(0, 2).toUpperCase()
+        id: convoId,
+        name: user.name || user.displayName || user.email,  // ✅ tries Firestore name first
+        type: 'direct',
+        initials: user.name
+            ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+            : (user.displayName || user.email).slice(0, 2).toUpperCase()
     }
     setDirectConvos(prev => {
       if (prev.find(c => c.id === convoId)) return prev
